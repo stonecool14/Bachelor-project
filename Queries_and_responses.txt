@@ -1,0 +1,26 @@
+Which factors do you think would be relevant measuring the level of toxicity in a given molecule?
+
+Some factors that may be relevant in measuring the level of toxicity in a given molecule include:
+1. Chemical structure: The specific arrangement of atoms in a molecule can impact its toxicity.
+2. Dosage: The amount of the molecule ingested, inhaled, or absorbed can affect its toxicity.
+3. Route of exposure: The method by which an individual is exposed to the molecule (e.g. ingestion, inhalation, dermal contact) can influence its toxicity.
+4. Duration of exposure: The length of time that an individual is exposed to the molecule can impact its toxicity.
+5. Metabolism: How the molecule is metabolized in the body can affect its toxicity.
+6. Target organs: The specific organs or systems in the body that are affected by the molecule can impact its toxicity.
+7. Genetic factors: Individual genetic differences can affect how the body reacts to and metabolizes the molecule, influencing its toxicity.
+
+Under the subject of chemistry, which functional groups are the most often found as the contributing factors to the toxicity of a molecule?
+
+
+Some of the functional groups that are commonly associated with increased toxicity in molecules are:
+
+1. Halogens (such as fluorine, chlorine, bromine, or iodine)
+2. Nitro group
+3. Aromatic rings
+4. Alkenes (double bonds)
+5. Alkynes (triple bonds)
+6. Aldehydes
+7. Ketones
+8. Esters
+
+These functional groups can have a significant impact on a molecule's toxicity by affecting its structure and biological interactions.
