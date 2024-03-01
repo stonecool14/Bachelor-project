@@ -12,11 +12,12 @@ textChat = open("Queries_and_responses.txt", "r")
 
 textChat = textChat.read()
 # question = 
-textChatSplit = textChat.split("\n")
+# textChatSplit = textChat.split("\n")
+textChatSplit = textChat.split("-"*100)
 textChatSplit = list(filter(None, textChatSplit))
 question = textChatSplit[-1]
+question = question.replace("Query", "")
 
-print(question)
 chat_completion = client.chat.completions.create(
     messages=[
         {
@@ -28,4 +29,4 @@ chat_completion = client.chat.completions.create(
 )
 
 textChatw = open("Queries_and_responses.txt", "w")
-textChatw.write(textChat+"\n"+chat_completion.choices[0].message.content+ "\n")
+textChatw.write(textChat+"\nAnwser\n"+chat_completion.choices[0].message.content+ "\n\n" + "-"*100+"\nQuery\n"+"\n\n"+"-"*100)
