@@ -220,6 +220,19 @@ This code snippet creates a 3x3 adjacency matrix with LogP, PSA, and molecular w
 
 ----------------------------------------------------------------------------------------------------
 Query
+Can you give a correlation coefficient for these measures and molecular toxicity?
+1. Lipophilicity (LogP)
+2. Polar Surface Area (PSA)
+3. Number of H-bond donors and acceptors
+4. Molecular weight
+5. Number of rotatable bonds 
+
+----------------------------------------------------------------------------------------------------
+Anwser
+In order to provide a correlation coefficient, we would need specific data on the measures and molecular toxicity. Without this data, we cannot determine the correlation between these measures and molecular toxicity. However, in general, these measures are often used in drug design and are known to influence molecular toxicity in different ways. Lipophilicity, molecular weight, and the number of rotatable bonds are often correlated with drug toxicity. Polar Surface Area and the number of H-bond donors and acceptors can also influence molecular toxicity, but the relationship may vary depending on the specific compound and target.
+
+----------------------------------------------------------------------------------------------------
+Query
 
 
 ----------------------------------------------------------------------------------------------------

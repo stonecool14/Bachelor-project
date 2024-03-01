@@ -8,6 +8,15 @@ client = OpenAI(
     api_key=apikey.read(),
 )
 
+def insertNewlines(text, lineLength):
+
+    if len(text) <= lineLength:
+        return text
+    elif text[lineLength] != ' ':
+        return insertNewlines(text[:], lineLength + 1)
+    else:
+        return text[:lineLength] + '\n' + insertNewlines(text[lineLength + 1:], lineLength)
+
 textChat = open("Queries_and_responses.txt", "r")
 
 textChat = textChat.read()
@@ -29,4 +38,8 @@ chat_completion = client.chat.completions.create(
 )
 
 textChatw = open("Queries_and_responses.txt", "w")
-textChatw.write(textChat+"\nAnwser\n"+chat_completion.choices[0].message.content+ "\n\n" + "-"*100+"\nQuery\n"+"\n\n"+"-"*100)
+output = chat_completion.choices[0].message.content
+
+
+
+textChatw.write(textChat+"\nAnwser\n"+insertNewlines(output, 250)+ "\n\n" + "-"*100+"\nQuery\n"+"\n\n"+"-"*100)
