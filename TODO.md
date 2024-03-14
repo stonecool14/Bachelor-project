@@ -1,0 +1,2 @@
+- Vi skal prøve at køre docker containeren
+- Prøv ellers slavisk at gå igennem deres repository instruktioner
