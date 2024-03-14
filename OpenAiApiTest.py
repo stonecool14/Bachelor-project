@@ -42,4 +42,4 @@ output = chat_completion.choices[0].message.content
 
 
 
-textChatw.write(textChat+"\nAnwser\n"+insertNewlines(output, 250)+ "\n\n" + "-"*100+"\nQuery\n"+"\n\n"+"-"*100)
+textChatw.write(textChat+"\nAnwser\n"+insertNewlines(output, 100)+ "\n\n" + "-"*100+"\nQuery\n"+"\n\n"+"-"*100)
