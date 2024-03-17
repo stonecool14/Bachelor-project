@@ -1,6 +1,155 @@
-from torch import nn as nn
-from grovermain.grover.model.models import GROVEREmbedding
-from grovermain.grover.util.parsing import parse_args
-temp = parse_args()
-print(temp.embedding_output_type)
-test = GROVEREmbedding(parse_args())
+import argparse
+import os.path as osp
+import time
+
+import torch
+import torch.nn.functional as F
+
+from torch_geometric.datasets import TUDataset
+from torch_geometric.loader import DataLoader
+from torch_geometric.logging import init_wandb, log
+from torch_geometric.nn import MLP, GINConv, global_add_pool
+import torch_geometric.transforms as T
+from torch_geometric.transforms import BaseTransform
+from torch_geometric.data import Data, InMemoryDataset
+
+dataset_name = 'QM9'
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--dataset', type=str, default=dataset_name)
+parser.add_argument('--batch_size', type=int, default=128)
+parser.add_argument('--hidden_channels', type=int, default=32)
+parser.add_argument('--num_layers', type=int, default=5)
+parser.add_argument('--lr', type=float, default=0.01)
+parser.add_argument('--epochs', type=int, default=100)
+parser.add_argument('--wandb', action='store_true', help='Track experiment')
+args = parser.parse_args()
+
+if torch.cuda.is_available():
+    device = torch.device('cuda')
+elif hasattr(torch.backends, 'mps') and torch.backends.mps.is_available():
+    # MPS is currently slower than CPU due to missing int64 min/max ops
+    device = torch.device('cpu')
+else:
+    device = torch.device('cpu')
+
+init_wandb(
+    name=f'GIN-{args.dataset}',
+    batch_size=args.batch_size,
+    lr=args.lr,
+    epochs=args.epochs,
+    hidden_channels=args.hidden_channels,
+    num_layers=args.num_layers,
+    device=device,
+)
+
+
+path = osp.join(osp.dirname(osp.realpath(__file__)), 'Data', dataset_name)
+dataset = TUDataset(path, name=args.dataset, use_edge_attr=True, use_node_attr=True).shuffle()
+
+
+
+
+
+train_loader = DataLoader(dataset[:0.9], args.batch_size, shuffle=True)
+test_loader = DataLoader(dataset[0.9:], args.batch_size)
+
+print(dataset[0].y.shape)
+print(dataset[0].y)
+
+
+
+class GIN(torch.nn.Module):
+    def __init__(self, in_channels, hidden_channels, out_channels, num_layers):
+        super().__init__()
+
+        self.convs = torch.nn.ModuleList()
+        for _ in range(num_layers):
+            mlp = MLP([in_channels, hidden_channels, hidden_channels])
+            self.convs.append(GINConv(nn=mlp, train_eps=False))
+            in_channels = hidden_channels
+
+        self.mlp = MLP([hidden_channels, hidden_channels, out_channels],
+                       norm=None, dropout=0.5)
+
+    def forward(self, x, edge_index, batch):
+        for conv in self.convs:
+            # print(edge_index)
+            x = conv(x, edge_index).relu()
+        x = global_add_pool(x, batch)
+        return self.mlp(x)
+
+
+model = GIN(
+    in_channels=dataset.num_features,
+    hidden_channels=args.hidden_channels,
+    out_channels=dataset.num_classes,
+    num_layers=args.num_layers,
+).to(device)
+optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
+
+
+def train():
+    model.train()
+    total_loss = 0
+    for data in train_loader:
+        data = data.to(device)
+        optimizer.zero_grad()
+        out = model(data.x, data.edge_index, data.batch)
+        loss = F.cross_entropy(out, data.y)
+        loss.backward()
+        optimizer.step()
+        total_loss += float(loss) * data.num_graphs
+    return total_loss / len(train_loader.dataset)
+
+
+# Prediction module (QM9 dataset training function)
+def OurPretrain():
+    model.train()
+    total_loss = 0
+    for data in train_loader:
+        data = data.to(device)
+        optimizer.zero_grad()
+
+        # STEP 1: Filter out properties we don't want to predict on (Use LLM)
+        out = model(data.x, data.edge_index, data.batch)
+        
+
+        # STEP 2: Update the loss function to reflect the one described in PEMP
+        loss = F.cross_entropy(out, data.y)
+
+        loss.backward()
+        optimizer.step()
+        
+        total_loss += float(loss) * data.num_graphs
+    return total_loss / len(train_loader.dataset)
+
+
+@torch.no_grad()
+def test(loader):
+    model.eval()
+    total_correct = 0
+    for data in loader:
+        data = data.to(device)
+        out = model(data.x, data.edge_index, data.batch)
+
+        # print(out.shape, (data.y).shape)
+        
+        # MUTAG implementation
+        # pred = out.argmax(dim=-1)
+        pred = model.forward(data.x, data.edge_index, data.batch)
+        # print(pred.shape, (data.y).shape)
+        total_correct += int((pred == data.y).sum())
+    return total_correct / len(loader.dataset)
+
+
+times = []
+for epoch in range(1, args.epochs + 1):
+    start = time.time()
+    loss = OurPretrain()
+    # loss = train()
+    train_acc = test(train_loader)
+    test_acc = test(test_loader)
+    # log(Epoch=epoch, Loss=loss, Train=train_acc, Test=test_acc)
+    times.append(time.time() - start)
+print(f'Median time per epoch: {torch.tensor(times).median():.4f}s')
